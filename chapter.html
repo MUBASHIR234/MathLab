@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter — MathLab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .chapter-hero{padding:50px 48px 10px;}
+  .chapter-hero h1{font-size:clamp(2rem,4.2vw,3rem); max-width:700px;}
+  .chapter-hero p{color:var(--ink-dim); margin-top:14px; max-width:600px; line-height:1.65;}
+
+  .chip-row{display:flex; gap:10px; margin-top:22px; flex-wrap:wrap;}
+  .chip{font-size:0.8rem; padding:7px 16px; border-radius:100px; border:1px solid var(--line); color:var(--ink-dim);}
+
+  .chapter-body{display:grid; grid-template-columns:260px 1fr; gap:48px; align-items:start; padding:40px 48px 100px;}
+  .toc{position:sticky; top:96px; display:flex; flex-direction:column; gap:4px;}
+  .toc a{padding:11px 16px; border-radius:10px; font-size:0.88rem; color:var(--ink-dim); border-left:2px solid transparent; transition:all 0.25s ease;}
+  .toc a:hover{color:var(--ink); background:var(--bg-card);}
+  .toc a.active{color:var(--cyan); border-left-color:var(--cyan); background:var(--bg-card);}
+
+  .content-col{max-width:760px;}
+
+  .concept-box{background:var(--bg-card); border:1px solid var(--line); border-radius:16px; padding:32px; margin-bottom:20px;}
+  .concept-box h2{font-size:1.5rem; margin-bottom:14px;}
+  .concept-box p{color:var(--ink-dim); line-height:1.75; font-size:0.98rem;}
+  .concept-box p + p{margin-top:14px;}
+  .formula-block{
+    background:var(--bg-soft); border:1px solid var(--line); border-left:3px solid var(--cyan); border-radius:10px;
+    padding:18px 22px; margin:18px 0; font-family:'JetBrains Mono', monospace; font-size:1.05rem; color:var(--cyan);
+  }
+
+  .exercise-header{display:flex; align-items:center; justify-content:space-between; margin:48px 0 24px;}
+  .exercise-header h2{font-size:1.4rem;}
+  .exercise-header .ex-count{color:var(--ink-dim); font-size:0.85rem;}
+
+  .q-card{background:var(--bg-card); border:1px solid var(--line); border-radius:14px; padding:26px 28px; margin-bottom:16px;}
+  .q-top{display:flex; gap:14px; align-items:flex-start;}
+  .q-num{font-family:'JetBrains Mono', monospace; color:var(--violet); font-size:0.9rem; font-weight:600; flex-shrink:0; margin-top:2px;}
+  .q-text{font-size:1rem; line-height:1.6; font-family:'JetBrains Mono', monospace;}
+
+  .q-actions{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;}
+  .q-toggle{
+    font-size:0.82rem; padding:8px 16px; border-radius:8px; border:1px solid var(--line); background:transparent;
+    color:var(--ink-dim); cursor:pointer; transition:all 0.25s ease; font-family:'Inter',sans-serif; font-weight:500;
+  }
+  .q-toggle.hint-btn:hover{border-color:var(--amber); color:var(--amber);}
+  .q-toggle.sol-btn:hover{border-color:var(--cyan); color:var(--cyan);}
+
+  .reveal-panel{margin-top:16px; padding:18px 20px; border-radius:10px; font-size:0.92rem; line-height:1.7; display:none;}
+  .reveal-panel.open{display:block; animation:panelIn 0.35s ease;}
+  @keyframes panelIn{from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);}}
+  .hint-panel{background:rgba(242,169,59,0.08); border:1px solid rgba(242,169,59,0.25); color:#F5C778;}
+  .hint-panel .label{color:var(--amber); font-weight:700; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:6px;}
+  .sol-panel{background:rgba(79,209,232,0.06); border:1px solid rgba(79,209,232,0.22); color:var(--ink); font-family:'JetBrains Mono', monospace;}
+  .sol-panel .label{color:var(--cyan); font-weight:700; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; display:block; margin-bottom:10px; font-family:'Inter',sans-serif;}
+  .sol-panel .step{margin-bottom:6px;}
+  .sol-panel .step:last-child{margin-bottom:0; color:var(--green); font-weight:600;}
+
+  .test-block{
+    margin:56px 0; border:1px solid rgba(139,127,224,0.3); border-radius:18px;
+    background:linear-gradient(160deg, rgba(139,127,224,0.08), rgba(79,209,232,0.04)); padding:36px;
+  }
+  .test-header{display:flex; align-items:center; gap:14px; margin-bottom:8px;}
+  .test-header .tag{background:var(--violet); color:#100E1F; font-size:0.72rem; font-weight:700; padding:5px 12px; border-radius:100px; letter-spacing:0.05em;}
+  .test-block h3{font-size:1.3rem; margin-top:14px;}
+  .test-block p.sub{color:var(--ink-dim); margin-top:8px; font-size:0.92rem;}
+
+  .quiz-q{margin-top:26px;}
+  .quiz-q .qtext{font-family:'JetBrains Mono', monospace; font-size:0.98rem; margin-bottom:14px;}
+  .quiz-options{display:flex; flex-direction:column; gap:10px;}
+  .quiz-opt{
+    display:flex; align-items:center; gap:12px; padding:13px 16px; border-radius:10px; border:1px solid var(--line);
+    background:rgba(255,255,255,0.02); cursor:pointer; font-size:0.92rem; transition:all 0.2s ease;
+  }
+  .quiz-opt:hover{border-color:var(--violet);}
+  .quiz-opt .letter{
+    width:24px; height:24px; border-radius:50%; border:1px solid var(--line); display:flex; align-items:center;
+    justify-content:center; font-size:0.78rem; flex-shrink:0; font-family:'JetBrains Mono', monospace;
+  }
+  .quiz-opt.correct{border-color:var(--green); background:rgba(95,208,149,0.1);}
+  .quiz-opt.correct .letter{background:var(--green); color:#06200F; border-color:var(--green);}
+  .quiz-opt.wrong{border-color:var(--red); background:rgba(232,99,107,0.1);}
+  .quiz-opt.wrong .letter{background:var(--red); color:#250708; border-color:var(--red);}
+  .quiz-feedback{margin-top:14px; font-size:0.88rem; padding:12px 16px; border-radius:8px; display:none;}
+  .quiz-feedback.show{display:block; animation:panelIn 0.3s ease;}
+  .quiz-feedback.right{background:rgba(95,208,149,0.1); color:var(--green);}
+  .quiz-feedback.wrong{background:rgba(232,99,107,0.1); color:var(--red);}
+  .quiz-progress{display:flex; gap:6px; margin-top:28px;}
+  .quiz-dot{width:8px; height:8px; border-radius:50%; background:var(--line);}
+  .quiz-dot.active{background:var(--violet);}
+  .quiz-dot.answered{background:var(--green);}
+  .quiz-score{margin-top:20px; font-size:0.95rem; color:var(--ink-dim); display:none;}
+  .quiz-score.show{display:block;}
+  .quiz-score b{color:var(--violet);}
+
+  .next-chapter{
+    margin-top:60px; padding:28px 32px; border-radius:16px; background:var(--bg-card); border:1px solid var(--line);
+    display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap;
+  }
+  .next-chapter .label{color:var(--ink-dim); font-size:0.82rem; margin-bottom:6px; display:block;}
+  .next-chapter h3{font-size:1.2rem;}
+
+  @media (max-width:900px){
+    .chapter-body{grid-template-columns:1fr; padding:30px 20px 70px;}
+    .toc{position:static; flex-direction:row; overflow-x:auto; padding-bottom:8px;}
+    .toc a{white-space:nowrap;}
+    .chapter-hero{padding:34px 20px 10px;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div class="bg-fade"></div>
+
+<div class="page-shell">
+  <nav>
+    <div class="logo"><span class="mark">∫</span>MathLab</div>
+    <div class="breadcrumb">
+      <a href="index.html">Home</a>
+      <span class="sep">/</span>
+      <a href="class.html" id="classBreadcrumb">Class 10</a>
+      <span class="sep">/</span>
+      <span class="current" id="chapterBreadcrumb">Quadratic Equations</span>
+    </div>
+  </nav>
+
+  <section class="chapter-hero">
+    <span class="section-tag" id="chapterTag">Chapter 01 · Algebra</span>
+    <h1 id="chapterTitle">Quadratic Equations</h1>
+    <p id="chapterDesc">Equations where the highest power of the variable is 2. This chapter covers solving them by factorization, completing the square, and the quadratic formula — plus word problems that turn into quadratics.</p>
+    <div class="chip-row">
+      <span class="chip">24 questions</span>
+      <span class="chip">4 exercises</span>
+      <span class="chip">1 quick test</span>
+      <span class="chip">~50 min</span>
+    </div>
+  </section>
+
+  <div class="chapter-body">
+    <aside class="toc">
+      <a href="#concept" class="active">Concept overview</a>
+      <a href="#ex-1">Exercise 1.1</a>
+      <a href="#ex-2">Exercise 1.2</a>
+      <a href="#midtest">Quick test</a>
+      <a href="#ex-3">Exercise 1.3</a>
+      <a href="#ex-4">Exercise 1.4</a>
+    </aside>
+
+    <div class="content-col">
+
+      <div id="concept" class="concept-box reveal">
+        <h2>Concept Overview</h2>
+        <p>A <b style="color:var(--ink);">quadratic equation</b> is any equation that can be written in the standard form below, where a ≠ 0.</p>
+        <div class="formula-block">ax² + bx + c = 0</div>
+        <p>There are three standard methods to solve it: <b style="color:var(--ink);">factorization</b> (splitting the middle term), <b style="color:var(--ink);">completing the square</b>, and the <b style="color:var(--ink);">quadratic formula</b> shown below.</p>
+        <div class="formula-block">x = (−b ± √(b² − 4ac)) / 2a</div>
+        <p>The expression under the root, b² − 4ac, is called the <b style="color:var(--ink);">discriminant</b>. It tells you whether the roots are real, equal, or complex — useful for checking your answer even before fully solving.</p>
+      </div>
+
+      <!-- EXERCISE 1.1 -->
+      <div id="ex-1">
+        <div class="exercise-header reveal">
+          <h2>Exercise 1.1 — Solve by Factorization</h2>
+          <span class="ex-count">6 questions</span>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q1</span><span class="q-text">Solve: x² − 5x + 6 = 0</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Find two numbers that multiply to give 6 and add to give −5.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">x² − 5x + 6 = 0</div>
+            <div class="step">x² − 2x − 3x + 6 = 0</div>
+            <div class="step">x(x − 2) − 3(x − 2) = 0</div>
+            <div class="step">(x − 2)(x − 3) = 0</div>
+            <div class="step">x = 2, x = 3</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q2</span><span class="q-text">Solve: 2x² + 7x + 3 = 0</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Multiply a and c first (2 × 3 = 6). Find two numbers that multiply to 6 and add to 7.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">2x² + 7x + 3 = 0</div>
+            <div class="step">2x² + 6x + x + 3 = 0</div>
+            <div class="step">2x(x + 3) + 1(x + 3) = 0</div>
+            <div class="step">(x + 3)(2x + 1) = 0</div>
+            <div class="step">x = −3, x = −1/2</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q3</span><span class="q-text">Solve: x² − 9 = 0</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>This is a difference of squares: a² − b² = (a − b)(a + b).</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">x² − 9 = 0</div>
+            <div class="step">(x − 3)(x + 3) = 0</div>
+            <div class="step">x = 3, x = −3</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q4</span><span class="q-text">Solve: x² + 2x − 15 = 0</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Find two numbers that multiply to −15 and add to 2.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">x² + 2x − 15 = 0</div>
+            <div class="step">x² + 5x − 3x − 15 = 0</div>
+            <div class="step">x(x + 5) − 3(x + 5) = 0</div>
+            <div class="step">(x + 5)(x − 3) = 0</div>
+            <div class="step">x = −5, x = 3</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q5</span><span class="q-text">Solve: 3x² − 8x + 4 = 0</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>a × c = 12. Find two numbers multiplying to 12, adding to −8.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">3x² − 8x + 4 = 0</div>
+            <div class="step">3x² − 6x − 2x + 4 = 0</div>
+            <div class="step">3x(x − 2) − 2(x − 2) = 0</div>
+            <div class="step">(x − 2)(3x − 2) = 0</div>
+            <div class="step">x = 2, x = 2/3</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q6</span><span class="q-text">Solve: x² = 4x</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Bring all terms to one side first — don't divide by x, you'll lose a root.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">x² − 4x = 0</div>
+            <div class="step">x(x − 4) = 0</div>
+            <div class="step">x = 0, x = 4</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXERCISE 1.2 -->
+      <div id="ex-2">
+        <div class="exercise-header reveal">
+          <h2>Exercise 1.2 — Completing the Square</h2>
+          <span class="ex-count">4 questions</span>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q1</span><span class="q-text">Solve by completing the square: x² + 6x + 5 = 0</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Half of 6 is 3 — add and subtract 3² = 9.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">x² + 6x + 5 = 0</div>
+            <div class="step">x² + 6x + 9 − 9 + 5 = 0</div>
+            <div class="step">(x + 3)² = 4</div>
+            <div class="step">x + 3 = ±2</div>
+            <div class="step">x = −1, x = −5</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q2</span><span class="q-text">Solve by completing the square: x² − 4x − 1 = 0</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Half of −4 is −2 — add and subtract (−2)² = 4.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">x² − 4x − 1 = 0</div>
+            <div class="step">(x − 2)² − 4 − 1 = 0</div>
+            <div class="step">(x − 2)² = 5</div>
+            <div class="step">x = 2 ± √5</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q3</span><span class="q-text">Solve: 2x² + 4x − 6 = 0 (complete the square)</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Divide the whole equation by 2 first to make the leading coefficient 1.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">x² + 2x − 3 = 0</div>
+            <div class="step">(x + 1)² − 1 − 3 = 0</div>
+            <div class="step">(x + 1)² = 4</div>
+            <div class="step">x = 1, x = −3</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q4</span><span class="q-text">Solve: x² + 3x − 2 = 0 (complete the square)</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Half of 3 is 3/2 — your square term will involve a fraction.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">(x + 3/2)² − 9/4 − 2 = 0</div>
+            <div class="step">(x + 3/2)² = 17/4</div>
+            <div class="step">x = (−3 ± √17) / 2</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MID-CHAPTER TEST -->
+      <div id="midtest" class="test-block reveal">
+        <div class="test-header">
+          <span class="tag">QUICK TEST</span>
+          <span style="color:var(--ink-dim); font-size:0.82rem;">3 questions · ungraded practice</span>
+        </div>
+        <h3>Pause and check: factorization & completing the square</h3>
+        <p class="sub">Answer these before moving to the formula method. They cover what you just practiced in 1.1 and 1.2.</p>
+
+        <div id="quizContainer"></div>
+
+        <div class="quiz-progress" id="quizProgress"></div>
+        <div class="quiz-score" id="quizScore"></div>
+      </div>
+
+      <!-- EXERCISE 1.3 -->
+      <div id="ex-3">
+        <div class="exercise-header reveal">
+          <h2>Exercise 1.3 — Quadratic Formula</h2>
+          <span class="ex-count">3 questions</span>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q1</span><span class="q-text">Solve using the quadratic formula: x² − 3x − 1 = 0</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Identify a = 1, b = −3, c = −1, then substitute directly into the formula.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">a = 1, b = −3, c = −1</div>
+            <div class="step">x = (3 ± √(9 + 4)) / 2</div>
+            <div class="step">x = (3 ± √13) / 2</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q2</span><span class="q-text">Solve: 2x² − 4x + 1 = 0</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>a = 2, b = −4, c = 1. Simplify √8 = 2√2 at the end.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">x = (4 ± √(16 − 8)) / 4</div>
+            <div class="step">x = (4 ± 2√2) / 4</div>
+            <div class="step">x = (2 ± √2) / 2</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q3</span><span class="q-text">Find the discriminant and nature of roots: x² + 4x + 4 = 0</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Discriminant = b² − 4ac. If it equals 0, roots are real and equal.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">b² − 4ac = 16 − 16 = 0</div>
+            <div class="step">Discriminant = 0 → roots are real and equal</div>
+            <div class="step">x = −2, −2</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXERCISE 1.4 -->
+      <div id="ex-4">
+        <div class="exercise-header reveal">
+          <h2>Exercise 1.4 — Word Problems</h2>
+          <span class="ex-count">2 questions</span>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q1</span><span class="q-text">The sum of a number and its square is 42. Find the number.</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Let the number be x. Translate "sum of a number and its square" into x² + x.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">x² + x = 42</div>
+            <div class="step">x² + x − 42 = 0</div>
+            <div class="step">(x + 7)(x − 6) = 0</div>
+            <div class="step">x = 6 or x = −7</div>
+          </div>
+        </div>
+
+        <div class="q-card reveal">
+          <div class="q-top"><span class="q-num">Q2</span><span class="q-text">A rectangle's length is 3 m more than its width. Its area is 70 m². Find its dimensions.</span></div>
+          <div class="q-actions">
+            <button class="q-toggle hint-btn">💡 Show hint</button>
+            <button class="q-toggle sol-btn">📘 Show solution</button>
+          </div>
+          <div class="reveal-panel hint-panel"><span class="label">Hint</span>Let width = x, so length = x + 3. Area = length × width.</div>
+          <div class="reveal-panel sol-panel">
+            <span class="label">Solution</span>
+            <div class="step">x(x + 3) = 70</div>
+            <div class="step">x² + 3x − 70 = 0</div>
+            <div class="step">(x + 10)(x − 7) = 0</div>
+            <div class="step">Width = 7 m, Length = 10 m</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="next-chapter reveal">
+        <div>
+          <span class="label">Done with this chapter</span>
+          <h3 id="nextChapterText">Back to chapter list to continue</h3>
+        </div>
+        <a href="class.html" class="btn btn-outline btn-sm" id="backToClassBtn">Back to chapter list →</a>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <span>© 2026 MathLab — built for Federal Board students.</span>
+    <a href="class.html" id="footerClassLink" style="color:var(--cyan);">← Back to chapters</a>
+  </footer>
+</div>
+
+<script src="bg.js"></script>
+<script src="calculator.js"></script>
+<script>
+  /* Read which class/chapter we came from, to wire breadcrumbs and back-links correctly.
+     Full worked content below is the Class 10, Chapter 01 (Quadratic Equations) sample —
+     this is the one chapter with complete exercises in this demo. */
+  const params = new URLSearchParams(window.location.search);
+  const c = params.get('c') || '10';
+  const ch = params.get('ch') || '01';
+
+  const CHAPTER_TITLES = {
+    9: { "01":"Matrices and Determinants","02":"Real and Complex Numbers","03":"Logarithms","04":"Algebraic Expressions & Formulas","05":"Factorization","06":"Algebraic Manipulation","07":"Linear Equations & Inequalities","08":"Linear Graphs & Their Application","09":"Introduction to Coordinate Geometry","10":"Congruent Triangles","11":"Parallelograms and Triangles","12":"Line Bisectors & Angle Bisectors","13":"Sides and Angles of a Triangle","14":"Ratio and Proportion","15":"Pythagoras Theorem","16":"Theorems Related with Area","17":"Practical Geometry — Triangles" },
+    10:{ "01":"Quadratic Equations","02":"Theory of Quadratic Equations","03":"Variations","04":"Partial Fractions","05":"Sets and Functions","06":"Basic Statistics","07":"Introduction to Trigonometry","08":"Projection of a Side of a Triangle","09":"Chords of a Circle","10":"Tangent to a Circle","11":"Chords and Arcs","12":"Angle in a Segment of a Circle","13":"Practical Geometry — Circles","14":"Areas of Triangles & Parallelograms" },
+    11:{ "01":"Number Systems","02":"Sets, Functions and Groups","03":"Matrices and Determinants","04":"Quadratic Equations","05":"Partial Fractions","06":"Sequences and Series","07":"Permutation, Combination & Probability","08":"Mathematical Induction & Binomial Theorem","09":"Fundamentals of Trigonometry","10":"Trigonometric Identities","11":"Trigonometric Functions & Graphs","12":"Application of Trigonometry","13":"Inverse Trigonometric Functions" },
+    12:{ "01":"Functions and Limits","02":"Differentiation","03":"Integration","04":"Introduction to Analytic Geometry","05":"Linear Inequalities & Linear Programming","06":"Conic Sections","07":"Vectors" }
+  };
+
+  const classChapters = CHAPTER_TITLES[c] || CHAPTER_TITLES['10'];
+  const chosenTitle = classChapters[ch] || classChapters['01'];
+  const isSampleChapter = (c === '10' && ch === '01');
+
+  document.getElementById('classBreadcrumb').textContent = `Class ${c}`;
+  document.getElementById('classBreadcrumb').href = `class.html?c=${c}`;
+  document.getElementById('chapterBreadcrumb').textContent = chosenTitle;
+  document.getElementById('chapterTag').textContent = `Chapter ${ch} · Class ${c}`;
+  document.getElementById('backToClassBtn').href = `class.html?c=${c}`;
+  document.getElementById('footerClassLink').href = `class.html?c=${c}`;
+
+  if (!isSampleChapter){
+    // Update the visible title/description, but keep the worked example content below
+    // (this demo currently has full worked exercises only for Class 10 → Quadratic Equations).
+    document.getElementById('chapterTitle').textContent = chosenTitle;
+    document.getElementById('chapterDesc').textContent =
+      `This is a preview of ${chosenTitle}. Full exercises for this chapter are coming soon — for now, here's a complete worked example (Quadratic Equations) showing exactly how every chapter will be structured: concept overview, exercises with hints and solutions, a quick test, and more exercises.`;
+  }
+
+  // Hint / Solution toggles
+  document.querySelectorAll('.q-card').forEach(card => {
+    const hintBtn = card.querySelector('.hint-btn');
+    const solBtn = card.querySelector('.sol-btn');
+    const hintPanel = card.querySelector('.hint-panel');
+    const solPanel = card.querySelector('.sol-panel');
+
+    hintBtn.addEventListener('click', () => {
+      hintPanel.classList.toggle('open');
+      hintBtn.textContent = hintPanel.classList.contains('open') ? '💡 Hide hint' : '💡 Show hint';
+    });
+    solBtn.addEventListener('click', () => {
+      solPanel.classList.toggle('open');
+      solBtn.textContent = solPanel.classList.contains('open') ? '📘 Hide solution' : '📘 Show solution';
+    });
+  });
+
+  // Mid-chapter quiz
+  const QUIZ = [
+    { q: "What are the roots of x² − 7x + 10 = 0?", options: ["x = 2, x = 5", "x = −2, x = −5", "x = 1, x = 10", "x = 5, x = −2"], correct: 0 },
+    { q: "Completing the square on x² + 8x + 7 = 0 gives (x + 4)² = ?", options: ["7", "9", "16", "23"], correct: 1 },
+    { q: "Which value of the discriminant means the roots are real and equal?", options: ["Greater than 0", "Less than 0", "Equal to 0", "Cannot be determined"], correct: 2 }
+  ];
+
+  let current = 0;
+  let score = 0;
+  const answered = new Array(QUIZ.length).fill(false);
+
+  const container = document.getElementById('quizContainer');
+  const progressEl = document.getElementById('quizProgress');
+  const scoreEl = document.getElementById('quizScore');
+
+  QUIZ.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'quiz-dot' + (i === 0 ? ' active' : '');
+    progressEl.appendChild(dot);
+  });
+
+  function renderQuiz() {
+    const item = QUIZ[current];
+    container.innerHTML = `
+      <div class="quiz-q">
+        <div class="qtext">Q${current + 1}. ${item.q}</div>
+        <div class="quiz-options">
+          ${item.options.map((opt, i) => `
+            <div class="quiz-opt" data-i="${i}">
+              <span class="letter">${String.fromCharCode(65 + i)}</span>
+              <span>${opt}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+        ${current < QUIZ.length - 1 ? '<button class="btn btn-outline btn-sm" id="nextQ" style="margin-top:18px; display:none;">Next question →</button>' : ''}
+      </div>
+    `;
+
+    document.querySelectorAll('.quiz-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        if (answered[current]) return;
+        const idx = parseInt(opt.dataset.i);
+        const feedback = document.getElementById('quizFeedback');
+        const allOpts = document.querySelectorAll('.quiz-opt');
+
+        allOpts.forEach(o => o.style.pointerEvents = 'none');
+
+        if (idx === item.correct) {
+          opt.classList.add('correct');
+          feedback.textContent = '✓ Correct! Nicely done.';
+          feedback.className = 'quiz-feedback show right';
+          score++;
+        } else {
+          opt.classList.add('wrong');
+          allOpts[item.correct].classList.add('correct');
+          feedback.textContent = '✗ Not quite — the correct answer is highlighted above.';
+          feedback.className = 'quiz-feedback show wrong';
+        }
+
+        answered[current] = true;
+        progressEl.children[current].classList.add('answered');
+
+        const nextBtn = document.getElementById('nextQ');
+        if (nextBtn) {
+          nextBtn.style.display = 'inline-flex';
+          nextBtn.addEventListener('click', () => {
+            current++;
+            progressEl.children[current].classList.add('active');
+            renderQuiz();
+          });
+        } else {
+          scoreEl.innerHTML = `Quick test complete — you scored <b>${score} / ${QUIZ.length}</b>. ${score === QUIZ.length ? "Perfect! Move on to Exercise 1.3." : "Review the missed concept above, then continue."}`;
+          scoreEl.classList.add('show');
+        }
+      });
+    });
+  }
+  renderQuiz();
+
+  // Scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.08 });
+  revealEls.forEach(el => observer.observe(el));
+
+  // TOC active state on scroll
+  const sections = ['concept','ex-1','ex-2','midtest','ex-3','ex-4'].map(id => document.getElementById(id));
+  const tocLinks = document.querySelectorAll('.toc a');
+  window.addEventListener('scroll', () => {
+    let activeIdx = 0;
+    sections.forEach((sec, i) => {
+      if (sec && sec.getBoundingClientRect().top < 160) activeIdx = i;
+    });
+    tocLinks.forEach((l, i) => l.classList.toggle('active', i === activeIdx));
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MathLab — Federal Board Maths, Classes 9–12</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Amiri:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .hero{
+    min-height:78vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:0 48px;
+  }
+  .hero .section-tag{margin-bottom:20px;}
+  .hero h1{
+    font-size:clamp(2.6rem, 6vw, 4.6rem);
+    line-height:1.05;
+    max-width:780px;
+  }
+  .hero h1 .accent{color:var(--cyan);}
+  .hero p{
+    margin-top:24px;
+    color:var(--ink-dim);
+    max-width:520px;
+    font-size:1.05rem;
+    line-height:1.65;
+  }
+  .hero-actions{margin-top:36px; display:flex; gap:16px; flex-wrap:wrap;}
+
+  .equation-strip{
+    display:flex;
+    gap:14px;
+    margin-top:56px;
+    flex-wrap:wrap;
+  }
+  .eq-chip{
+    border:1px solid var(--line);
+    background:var(--bg-card);
+    padding:10px 18px;
+    border-radius:10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.92rem;
+    color:var(--ink-dim);
+  }
+
+  /* ---------- Class grid ---------- */
+  .class-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:22px;
+  }
+  .class-card{
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:32px 28px;
+    position:relative;
+    overflow:hidden;
+    cursor:pointer;
+    transition:transform 0.35s cubic-bezier(.22,1,.36,1), border-color 0.35s ease, box-shadow 0.35s ease;
+    display:flex;
+    flex-direction:column;
+    min-height:280px;
+  }
+  .class-card::before{
+    content:'';
+    position:absolute;
+    top:-40%; right:-30%;
+    width:220px; height:220px;
+    border-radius:50%;
+    opacity:0;
+    transition:opacity 0.4s ease;
+    filter:blur(40px);
+  }
+  .class-card:nth-child(1)::before{background:var(--cyan);}
+  .class-card:nth-child(2)::before{background:var(--violet);}
+  .class-card:nth-child(3)::before{background:var(--amber);}
+  .class-card:nth-child(4)::before{background:var(--green);}
+  .class-card:hover{
+    transform:translateY(-6px);
+    border-color:var(--line);
+    box-shadow:0 20px 40px -20px rgba(0,0,0,0.5);
+  }
+  .class-card:hover::before{opacity:0.22;}
+  .class-num{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--ink-dim);
+    font-size:0.85rem;
+    position:relative; z-index:1;
+  }
+  .class-card h3{
+    font-size:1.9rem;
+    margin-top:14px;
+    position:relative; z-index:1;
+  }
+  .class-card .board{
+    color:var(--ink-dim);
+    font-size:0.85rem;
+    margin-top:6px;
+    position:relative; z-index:1;
+  }
+  .class-meta{
+    margin-top:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding-top:24px;
+    border-top:1px solid var(--line-soft);
+    position:relative; z-index:1;
+  }
+  .class-meta .chapters{
+    font-size:0.85rem;
+    color:var(--ink-dim);
+  }
+  .class-meta .chapters b{color:var(--ink); font-weight:600;}
+  .class-arrow{
+    width:38px; height:38px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform 0.35s cubic-bezier(.22,1,.36,1), border-color 0.3s ease;
+  }
+  .class-card:hover .class-arrow{transform:rotate(45deg); border-color:var(--cyan);}
+
+  /* ---------- Feature row ---------- */
+  .feature-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:24px;
+  }
+  .feature{
+    padding:30px;
+    border:1px solid var(--line);
+    border-radius:16px;
+    background:var(--bg-soft);
+  }
+  .feature .icon{
+    width:46px; height:46px;
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:1.3rem;
+    margin-bottom:18px;
+  }
+  .feature:nth-child(1) .icon{background:rgba(79,209,232,0.12); color:var(--cyan);}
+  .feature:nth-child(2) .icon{background:rgba(242,169,59,0.12); color:var(--amber);}
+  .feature:nth-child(3) .icon{background:rgba(139,127,224,0.12); color:var(--violet);}
+  .feature h3{font-size:1.15rem; margin-bottom:10px; font-weight:600; font-family:'Inter',sans-serif;}
+  .feature p{color:var(--ink-dim); font-size:0.92rem; line-height:1.6;}
+
+  .stats-row{
+    display:flex;
+    gap:60px;
+    flex-wrap:wrap;
+    border-top:1px solid var(--line);
+    padding-top:48px;
+    margin-top:20px;
+  }
+  .stat h2{font-size:2.4rem; color:var(--cyan); font-weight:600;}
+  .stat p{color:var(--ink-dim); font-size:0.88rem; margin-top:4px;}
+
+  /* =========================================================
+     ISLAMIC INTRO SECTION
+     ========================================================= */
+  .islamic-intro{
+    position:relative;
+    z-index:2;
+    padding:90px 48px 80px;
+    overflow:hidden;
+    text-align:center;
+    isolation:isolate;
+  }
+
+  /* Sunset glow backdrop — works standalone, and an image can be layered behind it later */
+  .islamic-intro .intro-bg{
+    position:absolute; inset:0; z-index:1;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(242,169,59,0.28), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 20% 100%, rgba(255,138,76,0.18), transparent 65%),
+      radial-gradient(ellipse 70% 50% at 80% 100%, rgba(232,99,107,0.16), transparent 65%),
+      linear-gradient(180deg, #0A0E17 0%, #160F0E 45%, #0A0E17 100%);
+    animation:introGlowShift 14s ease-in-out infinite;
+  }
+  /* If a background photo is added, it sits here, with the glow gradient as a soft overlay on top */
+  .islamic-intro .intro-bg-image{
+    position:absolute; inset:0; z-index:0;
+    background-size:cover; background-position:center;
+    opacity:0; /* becomes visible once an image URL is set */
+  }
+  .islamic-intro .intro-bg-image.has-image{ opacity:0.55; }
+
+  @keyframes introGlowShift{
+    0%, 100%{ filter:brightness(1) saturate(1); }
+    50%{ filter:brightness(1.12) saturate(1.15); }
+  }
+
+  .intro-glow-orb{
+    position:absolute; z-index:2; border-radius:50%; filter:blur(60px); pointer-events:none;
+    background:radial-gradient(circle, rgba(242,169,59,0.35), transparent 70%);
+    animation:introOrbFloat 10s ease-in-out infinite;
+  }
+  .intro-glow-orb.orb1{ width:260px; height:260px; top:-60px; left:8%; }
+  .intro-glow-orb.orb2{ width:200px; height:200px; bottom:-40px; right:10%; animation-delay:-4s;
+    background:radial-gradient(circle, rgba(255,138,76,0.3), transparent 70%); }
+
+  @keyframes introOrbFloat{
+    0%, 100%{ transform:translateY(0) scale(1); }
+    50%{ transform:translateY(-18px) scale(1.08); }
+  }
+
+  .bismillah{
+    position:relative; z-index:3;
+    font-family:'Amiri', serif;
+    font-size:4.2rem;
+    color:#F2A93B;
+    text-shadow:0 0 30px rgba(242,169,59,0.5), 0 0 70px rgba(242,169,59,0.25);
+    margin-bottom:14px;
+    opacity:0;
+    animation:introFadeUp 1s ease forwards;
+    animation-delay:0.1s;
+    direction:rtl;
+  }
+  .bismillah-translit{
+    position:relative; z-index:3;
+    color:var(--ink-dim);
+    font-size:1rem;
+    letter-spacing:0.04em;
+    margin-bottom:54px;
+    opacity:0;
+    animation:introFadeUp 1s ease forwards;
+    animation-delay:0.25s;
+  }
+
+  .ayah-block{
+    position:relative; z-index:3;
+    max-width:820px;
+    margin:0 auto 46px;
+    opacity:0;
+    animation:introFadeUp 1s ease forwards;
+    animation-delay:0.4s;
+  }
+  .ayah-arabic{
+    font-family:'Amiri', serif;
+    font-size:2.7rem;
+    line-height:1.8;
+    color:var(--ink);
+    text-shadow:0 0 24px rgba(242,169,59,0.18);
+    direction:rtl;
+  }
+  .ayah-translation{
+    color:var(--ink-dim);
+    font-size:1.15rem;
+    line-height:1.7;
+    margin-top:20px;
+    font-style:italic;
+  }
+  .ayah-ref{
+    color:#F2A93B;
+    font-size:0.92rem;
+    font-weight:600;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-top:16px;
+    display:block;
+  }
+
+  .intro-divider{
+    position:relative; z-index:3;
+    width:64px; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(242,169,59,0.6), transparent);
+    margin:0 auto 46px;
+    opacity:0;
+    animation:introFadeUp 1s ease forwards;
+    animation-delay:0.55s;
+  }
+
+  .iqbal-block{
+    position:relative; z-index:3;
+    max-width:760px;
+    margin:0 auto;
+    opacity:0;
+    animation:introFadeUp 1s ease forwards;
+    animation-delay:0.7s;
+  }
+  .iqbal-sher{
+    font-family:'Noto Nastaliq Urdu', serif;
+    font-size:2.3rem;
+    line-height:2.1;
+    color:var(--ink);
+    text-shadow:0 0 24px rgba(255,138,76,0.18);
+    direction:rtl;
+  }
+  .iqbal-attribution{
+    color:var(--ink-dim);
+    font-size:1rem;
+    margin-top:22px;
+    letter-spacing:0.03em;
+  }
+  .iqbal-attribution b{ color:#FF8A4C; font-weight:600; }
+
+  @keyframes introFadeUp{
+    from{ opacity:0; transform:translateY(16px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .audio-toggle{
+    position:relative; z-index:3;
+    margin:38px auto 0;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 20px;
+    border-radius:100px;
+    border:1px solid rgba(242,169,59,0.3);
+    background:rgba(242,169,59,0.08);
+    color:var(--ink-dim);
+    font-size:0.82rem;
+    font-family:'Inter', sans-serif;
+    cursor:pointer;
+    transition:all 0.3s ease;
+    opacity:0;
+    animation:introFadeUp 1s ease forwards;
+    animation-delay:0.85s;
+  }
+  .audio-toggle:hover{
+    border-color:rgba(242,169,59,0.55);
+    background:rgba(242,169,59,0.14);
+    color:var(--ink);
+  }
+  .audio-icon{ font-size:0.95rem; line-height:1; }
+  .audio-toggle.is-playing .audio-icon{ animation:audioPulse 1.2s ease-in-out infinite; }
+  @keyframes audioPulse{
+    0%, 100%{ opacity:1; transform:scale(1); }
+    50%{ opacity:0.6; transform:scale(0.9); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .islamic-intro .intro-bg, .intro-glow-orb{ animation:none; }
+    .audio-toggle.is-playing .audio-icon{ animation:none; }
+  }
+
+  @media (max-width:700px){
+    .islamic-intro{ padding:64px 20px 56px; }
+    .bismillah{ font-size:2.4rem; }
+    .ayah-arabic{ font-size:1.6rem; line-height:2.1; }
+    .iqbal-sher{ font-size:1.4rem; line-height:2.3; }
+    .intro-glow-orb.orb1{ width:160px; height:160px; }
+    .intro-glow-orb.orb2{ width:140px; height:140px; }
+  }
+
+  @media (min-width:701px) and (max-width:1100px){
+    .bismillah{ font-size:3.2rem; }
+    .ayah-arabic{ font-size:2.1rem; }
+    .iqbal-sher{ font-size:1.8rem; }
+  }
+
+  @media (max-width:1000px){
+    .class-grid{grid-template-columns:repeat(2,1fr);}
+    .feature-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:600px){
+    .class-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div class="bg-fade"></div>
+
+<section class="islamic-intro">
+  <div class="intro-bg"></div>
+  <div class="intro-bg-image" id="introBgImage"></div>
+  <div class="intro-glow-orb orb1"></div>
+  <div class="intro-glow-orb orb2"></div>
+
+  <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمٰنِ الرَّحِيمِ</div>
+  <div class="bismillah-translit">In the name of Allah, the Most Gracious, the Most Merciful</div>
+
+  <div class="ayah-block">
+    <div class="ayah-arabic">فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ﴿٥﴾ إِنَّ مَعَ الْعُسْرِ يُسْرًا ﴿٦﴾</div>
+    <p class="ayah-translation">"So surely with hardship comes ease. Surely with hardship comes ease."</p>
+    <span class="ayah-ref">Surah Al-Inshirah · 94:5–6</span>
+  </div>
+
+  <div class="intro-divider"></div>
+
+  <div class="iqbal-block">
+    <div class="iqbal-sher">
+      خودی کو کر بلند اتنا کہ ہر تقدیر سے پہلے<br>
+      خدا بندے سے خود پوچھے، بتا تیری رضا کیا ہے
+    </div>
+    <p class="iqbal-attribution">— <b>Allama Iqbal</b></p>
+  </div>
+
+  <button class="audio-toggle" id="audioToggle" aria-label="Toggle welcome greeting audio">
+    <span class="audio-icon">🔊</span>
+    <span class="audio-label" id="audioLabel">Playing welcome greeting…</span>
+  </button>
+</section>
+
+<div class="page-shell">
+  <nav>
+    <div class="logo"><span class="mark">∫</span>MathLab</div>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="#classes">Classes</a></li>
+      <li><a href="play.html">Play Zone</a></li>
+    </ul>
+  </nav>
+
+  <section class="hero">
+    <span class="section-tag">Federal Board · Classes 9 – 12</span>
+    <h1>Master Maths, one <span class="accent">solved step</span> at a time.</h1>
+    <p>Every chapter from the Federal Board syllabus — full exercises, worked solutions, guided hints, and quick tests to check what you've actually learned.</p>
+    <div class="hero-actions">
+      <a href="#classes" class="btn btn-primary">Browse classes</a>
+      <a href="chapter.html" class="btn btn-outline">Try a sample chapter →</a>
+    </div>
+    <div class="equation-strip">
+      <span class="eq-chip">x² + 5x + 6 = 0</span>
+      <span class="eq-chip">sin²θ + cos²θ = 1</span>
+      <span class="eq-chip">a/b ÷ c/d</span>
+      <span class="eq-chip">f(x) = mx + c</span>
+    </div>
+  </section>
+
+  <section id="classes">
+    <div class="reveal" style="margin-bottom:48px;">
+      <span class="section-tag">Choose Your Class</span>
+      <h2 style="font-size:clamp(1.8rem,3.5vw,2.6rem);">Pick up right where your textbook does.</h2>
+    </div>
+
+    <div class="class-grid reveal">
+      <a class="class-card" href="class.html?c=9">
+        <span class="class-num">CLASS</span>
+        <h3>9th</h3>
+        <span class="board">Federal Board · SSC Part I</span>
+        <div class="class-meta">
+          <span class="chapters"><b>17</b> chapters</span>
+          <div class="class-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="#EDEFF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <a class="class-card" href="class.html?c=10">
+        <span class="class-num">CLASS</span>
+        <h3>10th</h3>
+        <span class="board">Federal Board · SSC Part II</span>
+        <div class="class-meta">
+          <span class="chapters"><b>14</b> chapters</span>
+          <div class="class-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="#EDEFF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <a class="class-card" href="class.html?c=11">
+        <span class="class-num">CLASS</span>
+        <h3>11th</h3>
+        <span class="board">Federal Board · HSSC Part I</span>
+        <div class="class-meta">
+          <span class="chapters"><b>13</b> chapters</span>
+          <div class="class-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="#EDEFF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <a class="class-card" href="class.html?c=12">
+        <span class="class-num">CLASS</span>
+        <h3>12th</h3>
+        <span class="board">Federal Board · HSSC Part II</span>
+        <div class="class-meta">
+          <span class="chapters"><b>7</b> chapters</span>
+          <div class="class-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="#EDEFF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <a href="play.html" class="reveal" style="display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; background:linear-gradient(135deg, rgba(139,127,224,0.12), rgba(79,209,232,0.08)); border:1px solid rgba(139,127,224,0.3); border-radius:20px; padding:40px; text-decoration:none;">
+      <div>
+        <span class="section-tag" style="color:var(--violet);">New · Play Zone</span>
+        <h2 style="font-size:clamp(1.6rem,3vw,2.2rem); color:var(--ink);">Take a break — play a quick brain game.</h2>
+        <p style="color:var(--ink-dim); margin-top:10px; max-width:480px;">Mental math sprints, memory challenges, and reflex tests. Five games, zero signup.</p>
+      </div>
+      <span class="btn btn-primary" style="background:var(--violet); flex-shrink:0;">Open Play Zone →</span>
+    </a>
+  </section>
+
+  <section>
+    <div class="reveal" style="margin-bottom:40px;">
+      <span class="section-tag">How It Works</span>
+      <h2 style="font-size:clamp(1.8rem,3.5vw,2.6rem);">Built the way you actually study.</h2>
+    </div>
+    <div class="feature-grid reveal">
+      <div class="feature">
+        <div class="icon">Σ</div>
+        <h3>Exercise by exercise</h3>
+        <p>Every question from the textbook, organized exercise-wise exactly as they appear in your book.</p>
+      </div>
+      <div class="feature">
+        <div class="icon">?</div>
+        <h3>Hints before answers</h3>
+        <p>Stuck on a question? Reveal a hint first — the full solution only shows when you're ready for it.</p>
+      </div>
+      <div class="feature">
+        <div class="icon">✓</div>
+        <h3>Quick tests mid-chapter</h3>
+        <p>Short test queries placed between exercises so you can check understanding before moving on.</p>
+      </div>
+    </div>
+
+    <div class="stats-row reveal">
+      <div class="stat"><h2>51</h2><p>Chapters covered</p></div>
+      <div class="stat"><h2>2,400+</h2><p>Solved questions</p></div>
+      <div class="stat"><h2>180+</h2><p>Test queries</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 MathLab — built for Federal Board students.</span>
+    <span style="display:flex; align-items:center; gap:20px;">
+      <a href="secret.html" style="color:var(--ink-dim); font-size:0.8rem; opacity:0.7; transition:opacity 0.25s ease, color 0.25s ease;" onmouseover="this.style.opacity=1; this.style.color='#8B7FE0'" onmouseout="this.style.opacity=0.7; this.style.color='var(--ink-dim)'">🔒 Secret Zone</a>
+      <span>Classes 9 · 10 · 11 · 12</span>
+    </span>
+  </footer>
+</div>
+
+<script src="bg.js"></script>
+<script>
+  // Once a background photo is available, set its path here and it will
+  // fade in behind the existing sunset glow gradient automatically.
+  // Example: setIntroBackgroundImage('images/sunset.jpg');
+  function setIntroBackgroundImage(url){
+    const el = document.getElementById('introBgImage');
+    if (!el) return;
+    el.style.backgroundImage = `url('${url}')`;
+    el.classList.add('has-image');
+  }
+  setIntroBackgroundImage('https://images.unsplash.com/photo-1559068285-4e4a5466e09a?fm=jpg&q=80&w=1920&auto=format&fit=crop');
+</script>
+
+<script>
+  /* ===================== WELCOME GREETING (speech synthesis) ===================== */
+  (function () {
+    const GREETING_ARABIC = 'السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ. مَرْحَبًا بِكُمْ فِي ماث لاب.';
+    const GREETING_URDU = 'السلام علیکم و رحمتہ اللہ و برکاتہ۔ میتھ لیب میں خوش آمدید۔ علم کا یہ سفر بسم اللہ سے شروع کرتے ہیں۔';
+
+    const toggleBtn = document.getElementById('audioToggle');
+    const label = document.getElementById('audioLabel');
+    if (!toggleBtn) return;
+
+    const synth = window.speechSynthesis;
+    let userMuted = false;
+    let hasPlayed = false;
+    let voicesReady = false;
+    let availableVoices = [];
+
+    if (!synth) {
+      toggleBtn.style.display = 'none';
+      return;
+    }
+
+    function pickVoice(langPrefix) {
+      return availableVoices.find(v => v.lang && v.lang.toLowerCase().startsWith(langPrefix)) || null;
+    }
+
+    function speakSequence() {
+      synth.cancel();
+
+      const arabicVoice = pickVoice('ar');
+      const urduVoice = pickVoice('ur');
+
+      if (!arabicVoice && !urduVoice && availableVoices.length > 0) {
+        // No matching voice on this device at all — don't force English to mangle the text.
+        toggleBtn.classList.remove('is-playing');
+        label.textContent = 'Voice unavailable on this device';
+        return;
+      }
+
+      const arabicUtter = new SpeechSynthesisUtterance(GREETING_ARABIC);
+      if (arabicVoice) arabicUtter.voice = arabicVoice;
+      arabicUtter.lang = arabicVoice ? arabicVoice.lang : 'ar-SA';
+      arabicUtter.rate = 0.92;
+      arabicUtter.pitch = 1.0;
+
+      const urduUtter = new SpeechSynthesisUtterance(GREETING_URDU);
+      if (urduVoice) urduUtter.voice = urduVoice;
+      urduUtter.lang = urduVoice ? urduVoice.lang : 'ur-PK';
+      urduUtter.rate = 0.92;
+      urduUtter.pitch = 1.0;
+
+      toggleBtn.classList.add('is-playing');
+      label.textContent = 'Playing welcome greeting…';
+
+      arabicUtter.onend = () => {
+        if (!userMuted && urduVoice) synth.speak(urduUtter);
+        else {
+          toggleBtn.classList.remove('is-playing');
+          label.textContent = 'Play welcome greeting';
+        }
+      };
+      urduUtter.onend = () => {
+        toggleBtn.classList.remove('is-playing');
+        label.textContent = 'Play welcome greeting';
+      };
+      // If a voice fails entirely, still reset the UI rather than hang.
+      arabicUtter.onerror = () => { toggleBtn.classList.remove('is-playing'); label.textContent = 'Play welcome greeting'; };
+      urduUtter.onerror = () => { toggleBtn.classList.remove('is-playing'); label.textContent = 'Play welcome greeting'; };
+
+      if (arabicVoice) {
+        synth.speak(arabicUtter);
+      } else if (urduVoice) {
+        synth.speak(urduUtter);
+      }
+      hasPlayed = true;
+    }
+
+    function tryAutoplay() {
+      if (hasPlayed || userMuted) return;
+      speakSequence();
+    }
+
+    function loadVoicesThenAutoplay() {
+      availableVoices = synth.getVoices();
+      if (availableVoices.length) voicesReady = true;
+      tryAutoplay();
+    }
+
+    if (synth.getVoices().length) {
+      loadVoicesThenAutoplay();
+    } else {
+      synth.addEventListener('voiceschanged', loadVoicesThenAutoplay, { once: true });
+    }
+
+    // Most browsers block audio (including speech synthesis in some cases)
+    // until the user interacts with the page at least once. These listeners
+    // catch the first interaction and start the greeting then, if it hasn't
+    // already played.
+    ['click', 'scroll', 'keydown', 'touchstart'].forEach(evt => {
+      window.addEventListener(evt, tryAutoplay, { once: true, passive: true });
+    });
+
+    const iconEl = toggleBtn.querySelector('.audio-icon');
+
+    toggleBtn.addEventListener('click', () => {
+      if (toggleBtn.classList.contains('is-playing')) {
+        // Currently playing -> mute/stop
+        userMuted = true;
+        synth.cancel();
+        toggleBtn.classList.remove('is-playing');
+        toggleBtn.classList.add('muted');
+        if (iconEl) iconEl.textContent = '🔇';
+        label.textContent = 'Muted';
+        setTimeout(() => {
+          toggleBtn.classList.remove('muted');
+          if (iconEl) iconEl.textContent = '🔊';
+          label.textContent = 'Play welcome greeting';
+        }, 1400);
+      } else {
+        // Not playing -> play (or replay) it
+        userMuted = false;
+        if (iconEl) iconEl.textContent = '🔊';
+        speakSequence();
+      }
+    });
+  })();
+</script>
+
+<script src="calculator.js"></script>
+<script>
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

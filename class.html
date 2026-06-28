@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Class 9 — Mathematics Chapters | MathLab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .class-hero{padding:56px 48px 20px;}
+  .class-hero h1{font-size:clamp(2.2rem,4.5vw,3.2rem);}
+  .class-hero p{color:var(--ink-dim); margin-top:14px; max-width:560px; line-height:1.6;}
+
+  .progress-bar-wrap{ margin-top:30px; max-width:420px; }
+  .progress-label{ display:flex; justify-content:space-between; font-size:0.82rem; color:var(--ink-dim); margin-bottom:8px; }
+  .progress-track{ height:8px; border-radius:100px; background:var(--bg-card); border:1px solid var(--line); overflow:hidden; }
+  .progress-fill{ height:100%; width:18%; background:linear-gradient(90deg, var(--cyan), var(--violet)); border-radius:100px; transition:width 1.2s cubic-bezier(.22,1,.36,1); }
+
+  .chapter-list{ display:flex; flex-direction:column; gap:2px; margin-top:20px; }
+  .chapter-row{
+    display:grid; grid-template-columns:60px 1fr 140px 110px 40px; align-items:center; gap:20px;
+    padding:26px 24px; background:var(--bg-card); border:1px solid var(--line); border-radius:14px;
+    margin-bottom:10px; cursor:pointer; transition:border-color 0.3s ease, transform 0.3s cubic-bezier(.22,1,.36,1);
+    text-decoration:none; color:var(--ink);
+  }
+  .chapter-row:hover{ border-color:var(--cyan); transform:translateX(6px); }
+  .chapter-row .ch-num{ font-family:'JetBrains Mono', monospace; color:var(--ink-dim); font-size:0.95rem; }
+  .chapter-row h3{ font-size:1.15rem; font-weight:600; font-family:'Inter', sans-serif; }
+  .chapter-row .ch-meta{ color:var(--ink-dim); font-size:0.82rem; margin-top:4px; }
+  .ch-status{ font-size:0.78rem; padding:6px 14px; border-radius:100px; text-align:center; font-weight:600; }
+  .ch-status.done{ background:rgba(95,208,149,0.12); color:var(--green); }
+  .ch-status.progress{ background:rgba(242,169,59,0.12); color:var(--amber); }
+  .ch-status.locked{ background:rgba(237,239,245,0.06); color:var(--ink-dim); }
+  .ch-questions{ color:var(--ink-dim); font-size:0.85rem; text-align:right; }
+  .ch-arrow{
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform 0.3s cubic-bezier(.22,1,.36,1), border-color 0.3s ease;
+  }
+  .chapter-row:hover .ch-arrow{ transform:rotate(45deg); border-color:var(--cyan); }
+
+  .class-switch{ display:flex; gap:10px; margin-top:24px; flex-wrap:wrap; }
+  .class-pill{ padding:9px 18px; border-radius:100px; font-size:0.85rem; border:1px solid var(--line); color:var(--ink-dim); transition:all 0.25s ease; }
+  .class-pill.active{ background:var(--cyan); color:#06141A; border-color:var(--cyan); font-weight:600; }
+  .class-pill:hover:not(.active){ border-color:var(--ink-dim); color:var(--ink); }
+
+  @media (max-width:760px){
+    .chapter-row{ grid-template-columns:36px 1fr 36px; row-gap:10px; }
+    .ch-status, .ch-questions{ display:none; }
+    .class-hero{ padding:40px 20px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div class="bg-fade"></div>
+
+<div class="page-shell">
+  <nav>
+    <div class="logo"><span class="mark">∫</span>MathLab</div>
+    <div class="breadcrumb">
+      <a href="index.html">Home</a>
+      <span class="sep">/</span>
+      <span class="current" id="className">Class 9</span>
+      <span class="sep">/</span>
+      <a href="play.html" style="color:var(--violet);">Play Zone</a>
+    </div>
+  </nav>
+
+  <section class="class-hero">
+    <span class="section-tag" id="boardTag">Federal Board · SSC Part I</span>
+    <h1 id="classTitle">Class 9 — Mathematics</h1>
+    <p>Full syllabus broken into chapters. Click any chapter to open its exercises, hints, worked solutions, and a short test.</p>
+
+    <div class="class-switch">
+      <a class="class-pill" data-c="9" href="class.html?c=9">9th</a>
+      <a class="class-pill" data-c="10" href="class.html?c=10">10th</a>
+      <a class="class-pill" data-c="11" href="class.html?c=11">11th</a>
+      <a class="class-pill" data-c="12" href="class.html?c=12">12th</a>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-label"><span>Your progress</span><span id="progressPct">18%</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="chapter-list" id="chapterList"></div>
+  </section>
+
+  <footer>
+    <span>© 2026 MathLab — built for Federal Board students.</span>
+    <a href="index.html" style="color:var(--cyan);">← Back to home</a>
+  </footer>
+</div>
+
+<script src="bg.js"></script>
+<script src="calculator.js"></script>
+<script>
+  const DATA = {
+    9: {
+      title: "Class 9 — Mathematics",
+      board: "Federal Board · SSC Part I",
+      progress: 18,
+      chapters: [
+        ["01","Matrices and Determinants","Algebra",18,"progress"],
+        ["02","Real and Complex Numbers","Algebra",22,"done"],
+        ["03","Logarithms","Algebra",14,"locked"],
+        ["04","Algebraic Expressions & Formulas","Algebra",26,"locked"],
+        ["05","Factorization","Algebra",20,"locked"],
+        ["06","Algebraic Manipulation","Algebra",16,"locked"],
+        ["07","Linear Equations & Inequalities","Algebra",19,"locked"],
+        ["08","Linear Graphs & Their Application","Graphs",12,"locked"],
+        ["09","Introduction to Coordinate Geometry","Geometry",15,"locked"],
+        ["10","Congruent Triangles","Geometry",17,"locked"],
+        ["11","Parallelograms and Triangles","Geometry",14,"locked"],
+        ["12","Line Bisectors & Angle Bisectors","Geometry",11,"locked"],
+        ["13","Sides and Angles of a Triangle","Geometry",13,"locked"],
+        ["14","Ratio and Proportion","Geometry",16,"locked"],
+        ["15","Pythagoras Theorem","Geometry",10,"locked"],
+        ["16","Theorems Related with Area","Geometry",12,"locked"],
+        ["17","Practical Geometry — Triangles","Geometry",9,"locked"]
+      ]
+    },
+    10: {
+      title: "Class 10 — Mathematics",
+      board: "Federal Board · SSC Part II",
+      progress: 6,
+      chapters: [
+        ["01","Quadratic Equations","Algebra",24,"progress"],
+        ["02","Theory of Quadratic Equations","Algebra",20,"locked"],
+        ["03","Variations","Algebra",16,"locked"],
+        ["04","Partial Fractions","Algebra",14,"locked"],
+        ["05","Sets and Functions","Algebra",18,"locked"],
+        ["06","Basic Statistics","Statistics",22,"locked"],
+        ["07","Introduction to Trigonometry","Trigonometry",26,"locked"],
+        ["08","Projection of a Side of a Triangle","Trigonometry",10,"locked"],
+        ["09","Chords of a Circle","Geometry",13,"locked"],
+        ["10","Tangent to a Circle","Geometry",15,"locked"],
+        ["11","Chords and Arcs","Geometry",11,"locked"],
+        ["12","Angle in a Segment of a Circle","Geometry",9,"locked"],
+        ["13","Practical Geometry — Circles","Geometry",12,"locked"],
+        ["14","Areas of Triangles & Parallelograms","Geometry",14,"locked"]
+      ]
+    },
+    11: {
+      title: "Class 11 — Mathematics",
+      board: "Federal Board · HSSC Part I",
+      progress: 0,
+      chapters: [
+        ["01","Number Systems","Algebra",20,"locked"],
+        ["02","Sets, Functions and Groups","Algebra",24,"locked"],
+        ["03","Matrices and Determinants","Algebra",22,"locked"],
+        ["04","Quadratic Equations","Algebra",18,"locked"],
+        ["05","Partial Fractions","Algebra",14,"locked"],
+        ["06","Sequences and Series","Algebra",21,"locked"],
+        ["07","Permutation, Combination & Probability","Algebra",19,"locked"],
+        ["08","Mathematical Induction & Binomial Theorem","Algebra",16,"locked"],
+        ["09","Fundamentals of Trigonometry","Trigonometry",23,"locked"],
+        ["10","Trigonometric Identities","Trigonometry",20,"locked"],
+        ["11","Trigonometric Functions & Graphs","Trigonometry",15,"locked"],
+        ["12","Application of Trigonometry","Trigonometry",17,"locked"],
+        ["13","Inverse Trigonometric Functions","Trigonometry",12,"locked"]
+      ]
+    },
+    12: {
+      title: "Class 12 — Mathematics",
+      board: "Federal Board · HSSC Part II",
+      progress: 0,
+      chapters: [
+        ["01","Functions and Limits","Calculus",18,"locked"],
+        ["02","Differentiation","Calculus",26,"locked"],
+        ["03","Integration","Calculus",24,"locked"],
+        ["04","Introduction to Analytic Geometry","Geometry",20,"locked"],
+        ["05","Linear Inequalities & Linear Programming","Algebra",15,"locked"],
+        ["06","Conic Sections","Geometry",19,"locked"],
+        ["07","Vectors","Vectors",17,"locked"]
+      ]
+    }
+  };
+
+  const params = new URLSearchParams(window.location.search);
+  const c = params.get('c') || '9';
+  const data = DATA[c] || DATA['9'];
+
+  document.getElementById('className').textContent = `Class ${c}`;
+  document.getElementById('classTitle').textContent = data.title;
+  document.getElementById('boardTag').textContent = data.board;
+  document.getElementById('progressPct').textContent = data.progress + '%';
+  document.getElementById('progressFill').style.width = data.progress + '%';
+
+  document.querySelectorAll('.class-pill').forEach(p => {
+    if (p.dataset.c === c) p.classList.add('active');
+  });
+
+  const list = document.getElementById('chapterList');
+  data.chapters.forEach(([num, title, topic, qcount, status]) => {
+    const row = document.createElement('a');
+    row.href = `chapter.html?c=${c}&ch=${num}`;
+    row.className = 'chapter-row reveal';
+    const statusLabel = status === 'done' ? 'Completed' : status === 'progress' ? 'In progress' : 'Not started';
+    row.innerHTML = `
+      <span class="ch-num">${num}</span>
+      <div>
+        <h3>${title}</h3>
+        <div class="ch-meta">${topic}</div>
+      </div>
+      <span class="ch-status ${status}">${statusLabel}</span>
+      <span class="ch-questions">${qcount} questions</span>
+      <div class="ch-arrow">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="#EDEFF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.1 });
+  revealEls.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

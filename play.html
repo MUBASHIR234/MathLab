@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play Zone — MathLab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .play-hero{padding:54px 48px 10px;}
+  .play-hero h1{font-size:clamp(2.2rem,4.8vw,3.4rem); max-width:700px;}
+  .play-hero p{color:var(--ink-dim); margin-top:14px; max-width:560px; line-height:1.65;}
+
+  /* ---------- Game grid ---------- */
+  .game-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:22px;
+    padding:30px 48px 80px;
+  }
+  .game-card{
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:30px 26px;
+    position:relative;
+    overflow:hidden;
+    cursor:pointer;
+    transition:transform 0.35s cubic-bezier(.22,1,.36,1), border-color 0.35s ease, box-shadow 0.35s ease;
+    display:flex;
+    flex-direction:column;
+    min-height:230px;
+  }
+  .game-card::before{
+    content:'';
+    position:absolute;
+    top:-30%; right:-20%;
+    width:200px; height:200px;
+    border-radius:50%;
+    opacity:0;
+    transition:opacity 0.4s ease;
+    filter:blur(44px);
+  }
+  .game-card:nth-child(1)::before{background:var(--cyan);}
+  .game-card:nth-child(2)::before{background:var(--violet);}
+  .game-card:nth-child(3)::before{background:var(--amber);}
+  .game-card:nth-child(4)::before{background:var(--green);}
+  .game-card:nth-child(5)::before{background:var(--red);}
+  .game-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 20px 40px -20px rgba(0,0,0,0.55);
+  }
+  .game-card:hover::before{opacity:0.25;}
+  .game-icon{
+    width:50px; height:50px; border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.5rem; margin-bottom:18px; position:relative; z-index:1;
+  }
+  .game-card:nth-child(1) .game-icon{background:rgba(79,209,232,0.12); color:var(--cyan);}
+  .game-card:nth-child(2) .game-icon{background:rgba(139,127,224,0.12); color:var(--violet);}
+  .game-card:nth-child(3) .game-icon{background:rgba(242,169,59,0.12); color:var(--amber);}
+  .game-card:nth-child(4) .game-icon{background:rgba(95,208,149,0.12); color:var(--green);}
+  .game-card:nth-child(5) .game-icon{background:rgba(232,99,107,0.12); color:var(--red);}
+  .game-card h3{font-size:1.3rem; position:relative; z-index:1;}
+  .game-card p{color:var(--ink-dim); font-size:0.88rem; margin-top:8px; line-height:1.55; position:relative; z-index:1;}
+  .game-meta{
+    margin-top:auto; display:flex; justify-content:space-between; align-items:center;
+    padding-top:20px; border-top:1px solid var(--line-soft); position:relative; z-index:1;
+  }
+  .game-tag{font-size:0.78rem; color:var(--ink-dim); font-family:'JetBrains Mono', monospace;}
+  .game-best{font-size:0.78rem; color:var(--cyan); font-weight:600;}
+  .play-arrow{
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    transition:transform 0.35s cubic-bezier(.22,1,.36,1), border-color 0.3s ease;
+  }
+  .game-card:hover .play-arrow{transform:rotate(45deg); border-color:var(--cyan);}
+
+  /* ---------- Modal overlay ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:200;
+    background:rgba(6,8,14,0.78);
+    backdrop-filter:blur(8px);
+    display:none;
+    align-items:center; justify-content:center;
+    padding:24px;
+  }
+  .modal-overlay.open{display:flex; animation:fadeIn 0.25s ease;}
+  @keyframes fadeIn{from{opacity:0;} to{opacity:1;}}
+  .modal-box{
+    background:var(--bg-card);
+    border:1px solid var(--line);
+    border-radius:20px;
+    width:100%; max-width:560px;
+    max-height:88vh;
+    overflow-y:auto;
+    padding:32px;
+    position:relative;
+    animation:modalIn 0.3s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes modalIn{from{opacity:0; transform:translateY(20px) scale(0.97);} to{opacity:1; transform:translateY(0) scale(1);}}
+  .modal-close{
+    position:absolute; top:20px; right:20px;
+    width:34px; height:34px; border-radius:50%;
+    border:1px solid var(--line); background:transparent; color:var(--ink-dim);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:all 0.25s ease; font-size:1rem;
+  }
+  .modal-close:hover{color:var(--ink); border-color:var(--red);}
+  .modal-title{font-size:1.4rem; margin-bottom:4px; padding-right:40px;}
+  .modal-sub{color:var(--ink-dim); font-size:0.85rem; margin-bottom:24px;}
+
+  /* ---------- Shared game UI bits ---------- */
+  .game-stats-row{display:flex; gap:24px; margin-bottom:22px;}
+  .game-stat{flex:1; background:var(--bg-soft); border:1px solid var(--line); border-radius:12px; padding:14px 16px; text-align:center;}
+  .game-stat .val{font-family:'JetBrains Mono', monospace; font-size:1.5rem; font-weight:600; color:var(--cyan);}
+  .game-stat .lbl{font-size:0.75rem; color:var(--ink-dim); margin-top:2px;}
+
+  .game-display{
+    background:var(--bg-soft); border:1px solid var(--line); border-radius:14px;
+    padding:32px; text-align:center; margin-bottom:20px; min-height:90px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .game-display .prompt{font-family:'JetBrains Mono', monospace; font-size:2rem; font-weight:600;}
+  .game-display .sub{color:var(--ink-dim); font-size:0.85rem; margin-top:8px;}
+
+  .answer-input{
+    width:100%; padding:14px 16px; border-radius:10px; border:1px solid var(--line);
+    background:var(--bg-soft); color:var(--ink); font-family:'JetBrains Mono', monospace;
+    font-size:1.1rem; text-align:center; margin-bottom:14px; outline:none;
+    transition:border-color 0.25s ease;
+  }
+  .answer-input:focus{border-color:var(--cyan);}
+
+  .opt-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;}
+  .opt-btn{
+    padding:16px; border-radius:10px; border:1px solid var(--line); background:var(--bg-soft);
+    color:var(--ink); font-family:'JetBrains Mono', monospace; font-size:1.1rem; cursor:pointer;
+    transition:all 0.2s ease;
+  }
+  .opt-btn:hover{border-color:var(--cyan);}
+  .opt-btn.correct{border-color:var(--green); background:rgba(95,208,149,0.12); color:var(--green);}
+  .opt-btn.wrong{border-color:var(--red); background:rgba(232,99,107,0.12); color:var(--red);}
+
+  .game-msg{text-align:center; font-size:0.9rem; min-height:22px; margin-bottom:8px;}
+  .game-msg.right{color:var(--green);}
+  .game-msg.wrong{color:var(--red);}
+  .game-msg.info{color:var(--ink-dim);}
+
+  .end-screen{text-align:center; padding:20px 0;}
+  .end-screen .score-big{font-family:'JetBrains Mono', monospace; font-size:3rem; color:var(--cyan); font-weight:700;}
+  .end-screen p{color:var(--ink-dim); margin-top:8px;}
+
+  /* Memory grid (Number Memory + Math Match) */
+  .mem-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:16px;}
+  .mem-cell{
+    aspect-ratio:1; border-radius:10px; background:var(--bg-soft); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono', monospace;
+    font-size:1.1rem; cursor:pointer; transition:all 0.25s ease; user-select:none;
+  }
+  .mem-cell.flipped{background:rgba(79,209,232,0.12); border-color:var(--cyan); color:var(--cyan);}
+  .mem-cell.matched{background:rgba(95,208,149,0.12); border-color:var(--green); color:var(--green); cursor:default;}
+  .mem-cell.lit{background:var(--violet); color:#100E1F; border-color:var(--violet); transform:scale(1.05);}
+
+  /* Reflex game */
+  .reflex-zone{
+    height:220px; border-radius:14px; border:1px solid var(--line); background:var(--bg-soft);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-size:1.3rem; font-weight:600; transition:background 0.15s ease; margin-bottom:14px; text-align:center; padding:20px;
+  }
+  .reflex-zone.wait{color:var(--ink-dim);}
+  .reflex-zone.ready{background:rgba(95,208,149,0.15); color:var(--green); border-color:var(--green);}
+  .reflex-zone.too-soon{background:rgba(232,99,107,0.15); color:var(--red); border-color:var(--red);}
+
+  .btn-game{
+    width:100%; padding:14px; border-radius:10px; border:none; background:var(--cyan); color:#06141A;
+    font-weight:600; font-size:0.95rem; cursor:pointer; transition:transform 0.2s ease; font-family:'Inter',sans-serif;
+  }
+  .btn-game:hover{transform:translateY(-2px);}
+  .btn-game.secondary{background:transparent; border:1px solid var(--line); color:var(--ink);}
+
+  @media (max-width:900px){
+    .game-grid{grid-template-columns:1fr 1fr; padding:20px 20px 60px;}
+    .play-hero{padding:36px 20px 6px;}
+  }
+  @media (max-width:560px){
+    .game-grid{grid-template-columns:1fr;}
+    .opt-grid{grid-template-columns:1fr 1fr;}
+    .mem-grid{grid-template-columns:repeat(4,1fr); gap:8px;}
+  }
+
+  /* Lighter fade on this page so the scientist silhouettes & equations stay visible */
+  .bg-fade{
+    background:radial-gradient(circle at 50% 0%, rgba(10,14,23,0.08) 0%, rgba(10,14,23,0.42) 100%);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+<div class="bg-fade"></div>
+
+<div class="page-shell">
+  <nav>
+    <div class="logo"><span class="mark">∫</span>MathLab</div>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="index.html#classes">Classes</a></li>
+      <li><a href="play.html" class="active">Play Zone</a></li>
+    </ul>
+  </nav>
+
+  <section class="play-hero">
+    <span class="section-tag">Play Zone</span>
+    <h1>Sharpen your brain between chapters.</h1>
+    <p>Five quick games — mental math, memory, and reflex. No signup, no pressure. Just open one and go.</p>
+  </section>
+
+  <div class="game-grid">
+
+    <div class="game-card" data-game="quickmath">
+      <div class="game-icon">⚡</div>
+      <h3>Quick Math</h3>
+      <p>Solve as many arithmetic problems as you can before the 30-second clock runs out.</p>
+      <div class="game-meta">
+        <span class="game-tag">60s · arithmetic</span>
+        <div class="play-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="#EDEFF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-game="memory">
+      <div class="game-icon">🧠</div>
+      <h3>Number Memory</h3>
+      <p>A number sequence flashes briefly — type it back correctly to advance to the next level.</p>
+      <div class="game-meta">
+        <span class="game-tag">levels · memory</span>
+        <div class="play-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="#EDEFF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-game="reflex">
+      <div class="game-icon">🎯</div>
+      <h3>Reflex Tap</h3>
+      <p>Wait for the box to turn green, then tap as fast as you can. Tap early and you lose the round.</p>
+      <div class="game-meta">
+        <span class="game-tag">5 rounds · reflex</span>
+        <div class="play-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="#EDEFF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-game="match">
+      <div class="game-icon">🔢</div>
+      <h3>Math Match</h3>
+      <p>Flip cards to pair every equation with its correct answer. Fewer moves means a better score.</p>
+      <div class="game-meta">
+        <span class="game-tag">8 pairs · memory</span>
+        <div class="play-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="#EDEFF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+    </div>
+
+    <div class="game-card" data-game="sequence">
+      <div class="game-icon">📈</div>
+      <h3>Sequence Solver</h3>
+      <p>Spot the pattern in each number series and choose what comes next. Gets trickier each round.</p>
+      <div class="game-meta">
+        <span class="game-tag">10 rounds · pattern</span>
+        <div class="play-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7V16" stroke="#EDEFF5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>© 2026 MathLab — built for Federal Board students.</span>
+    <span style="display:flex; align-items:center; gap:20px;">
+      <a href="secret.html" style="color:var(--ink-dim); font-size:0.8rem; opacity:0.7;">🔒 Secret Zone</a>
+      <a href="index.html" style="color:var(--cyan);">← Back to home</a>
+    </span>
+  </footer>
+</div>
+
+<!-- ============ MODAL ============ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box" id="modalBox">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script src="scientist-bg.js"></script>
+<script src="calculator.js"></script>
+<script>
+/* ===================== Modal plumbing ===================== */
+const overlay = document.getElementById('modalOverlay');
+const modalContent = document.getElementById('modalContent');
+let activeTimer = null;
+
+function closeModal(){
+  overlay.classList.remove('open');
+  if (activeTimer) { clearInterval(activeTimer); clearTimeout(activeTimer); activeTimer = null; }
+  modalContent.innerHTML = '';
+}
+document.getElementById('modalClose').addEventListener('click', closeModal);
+overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+function openModal(html){
+  modalContent.innerHTML = html;
+  overlay.classList.add('open');
+}
+
+document.querySelectorAll('.game-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const game = card.dataset.game;
+    if (game === 'quickmath') initQuickMath();
+    if (game === 'memory') initMemory();
+    if (game === 'reflex') initReflex();
+    if (game === 'match') initMatch();
+    if (game === 'sequence') initSequence();
+  });
+});
+
+function rand(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+function shuffle(arr){ return arr.sort(() => Math.random() - 0.5); }
+
+/* ===================== 1. QUICK MATH ===================== */
+function initQuickMath(){
+  let score = 0, timeLeft = 30, current = null;
+
+  openModal(`
+    <h3 class="modal-title">Quick Math</h3>
+    <p class="modal-sub">Solve as many as you can in 30 seconds.</p>
+    <div class="game-stats-row">
+      <div class="game-stat"><div class="val" id="qmScore">0</div><div class="lbl">Score</div></div>
+      <div class="game-stat"><div class="val" id="qmTime">30</div><div class="lbl">Seconds</div></div>
+    </div>
+    <div class="game-display"><div class="prompt" id="qmPrompt">Ready?</div></div>
+    <input type="text" inputmode="numeric" class="answer-input" id="qmInput" placeholder="Type your answer" disabled>
+    <div class="game-msg info" id="qmMsg">Press start when you're ready.</div>
+    <button class="btn-game" id="qmStart">Start</button>
+  `);
+
+  function newQuestion(){
+    const ops = ['+','-','×'];
+    const op = ops[rand(0,2)];
+    let a, b, ans;
+    if (op === '+'){ a = rand(10,90); b = rand(10,90); ans = a+b; }
+    else if (op === '-'){ a = rand(20,99); b = rand(1,a); ans = a-b; }
+    else { a = rand(2,12); b = rand(2,12); ans = a*b; }
+    current = ans;
+    document.getElementById('qmPrompt').textContent = `${a} ${op} ${b} = ?`;
+  }
+
+  document.getElementById('qmStart').addEventListener('click', () => {
+    score = 0; timeLeft = 30;
+    document.getElementById('qmScore').textContent = score;
+    document.getElementById('qmTime').textContent = timeLeft;
+    document.getElementById('qmStart').style.display = 'none';
+    const input = document.getElementById('qmInput');
+    input.disabled = false;
+    input.value = '';
+    input.focus();
+    document.getElementById('qmMsg').textContent = 'Go!';
+    document.getElementById('qmMsg').className = 'game-msg info';
+    newQuestion();
+
+    activeTimer = setInterval(() => {
+      timeLeft--;
+      document.getElementById('qmTime').textContent = timeLeft;
+      if (timeLeft <= 0){
+        clearInterval(activeTimer);
+        input.disabled = true;
+        document.getElementById('qmPrompt').textContent = "Time's up!";
+        document.getElementById('qmMsg').textContent = `Final score: ${score} solved.`;
+        document.getElementById('qmMsg').className = 'game-msg right';
+        const startBtn = document.getElementById('qmStart');
+        startBtn.textContent = 'Play again';
+        startBtn.style.display = 'block';
+      }
+    }, 1000);
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !input.disabled){
+        const val = parseInt(input.value, 10);
+        if (val === current){
+          score++;
+          document.getElementById('qmScore').textContent = score;
+          document.getElementById('qmMsg').textContent = '✓ Correct!';
+          document.getElementById('qmMsg').className = 'game-msg right';
+        } else {
+          document.getElementById('qmMsg').textContent = `✗ It was ${current}`;
+          document.getElementById('qmMsg').className = 'game-msg wrong';
+        }
+        input.value = '';
+        newQuestion();
+      }
+    });
+  });
+}
+
+/* ===================== 2. NUMBER MEMORY ===================== */
+function initMemory(){
+  let level = 1, sequence = [];
+
+  openModal(`
+    <h3 class="modal-title">Number Memory</h3>
+    <p class="modal-sub">Memorize the sequence, then type it back.</p>
+    <div class="game-stats-row">
+      <div class="game-stat"><div class="val" id="memLevel">1</div><div class="lbl">Level</div></div>
+    </div>
+    <div class="game-display"><div class="prompt" id="memPrompt">Ready?</div></div>
+    <input type="text" inputmode="numeric" class="answer-input" id="memInput" placeholder="Type the sequence" disabled>
+    <div class="game-msg info" id="memMsg">Press start to see your first sequence.</div>
+    <button class="btn-game" id="memStart">Start</button>
+  `);
+
+  function playSequence(){
+    sequence = Array.from({length: level + 2}, () => rand(0,9));
+    const input = document.getElementById('memInput');
+    const prompt = document.getElementById('memPrompt');
+    input.disabled = true;
+    input.value = '';
+    let i = 0;
+    prompt.textContent = 'Watch closely...';
+    activeTimer = setInterval(() => {
+      if (i < sequence.length){
+        prompt.textContent = sequence[i];
+        i++;
+      } else {
+        clearInterval(activeTimer);
+        prompt.textContent = '?';
+        input.disabled = false;
+        input.focus();
+        document.getElementById('memMsg').textContent = 'Type what you saw, then press Enter.';
+        document.getElementById('memMsg').className = 'game-msg info';
+      }
+    }, 800);
+  }
+
+  document.getElementById('memStart').addEventListener('click', () => {
+    level = 1;
+    document.getElementById('memLevel').textContent = level;
+    document.getElementById('memStart').style.display = 'none';
+    playSequence();
+  });
+
+  document.getElementById('memInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.target.disabled){
+      const guess = e.target.value.trim();
+      const correct = sequence.join('');
+      if (guess === correct){
+        level++;
+        document.getElementById('memLevel').textContent = level;
+        document.getElementById('memMsg').textContent = '✓ Correct! Next round...';
+        document.getElementById('memMsg').className = 'game-msg right';
+        setTimeout(playSequence, 1000);
+      } else {
+        document.getElementById('memMsg').textContent = `✗ It was ${correct}. You reached level ${level}.`;
+        document.getElementById('memMsg').className = 'game-msg wrong';
+        document.getElementById('memPrompt').textContent = 'Game over';
+        e.target.disabled = true;
+        const startBtn = document.getElementById('memStart');
+        startBtn.textContent = 'Play again';
+        startBtn.style.display = 'block';
+      }
+    }
+  });
+}
+
+/* ===================== 3. REFLEX TAP ===================== */
+function initReflex(){
+  let round = 0, totalRounds = 5, times = [], waitTimeout = null, startTime = 0, state = 'idle';
+
+  openModal(`
+    <h3 class="modal-title">Reflex Tap</h3>
+    <p class="modal-sub">Wait for green, then tap as fast as you can.</p>
+    <div class="game-stats-row">
+      <div class="game-stat"><div class="val" id="rfRound">0/5</div><div class="lbl">Round</div></div>
+      <div class="game-stat"><div class="val" id="rfAvg">—</div><div class="lbl">Avg ms</div></div>
+    </div>
+    <div class="reflex-zone wait" id="rfZone">Press start, then wait for green</div>
+    <button class="btn-game" id="rfStart">Start</button>
+  `);
+
+  const zone = document.getElementById('rfZone');
+
+  function nextRound(){
+    state = 'waiting';
+    zone.className = 'reflex-zone wait';
+    zone.textContent = 'Wait for green...';
+    const delay = rand(1200, 3500);
+    waitTimeout = setTimeout(() => {
+      state = 'ready';
+      startTime = performance.now();
+      zone.className = 'reflex-zone ready';
+      zone.textContent = 'TAP NOW!';
+    }, delay);
+  }
+
+  zone.addEventListener('click', () => {
+    if (state === 'idle') return;
+    if (state === 'waiting'){
+      clearTimeout(waitTimeout);
+      state = 'idle';
+      zone.className = 'reflex-zone too-soon';
+      zone.textContent = 'Too soon! Click to retry this round.';
+      zone.addEventListener('click', function retry(){
+        zone.removeEventListener('click', retry);
+        nextRound();
+      }, { once: true });
+      return;
+    }
+    if (state === 'ready'){
+      const reaction = Math.round(performance.now() - startTime);
+      times.push(reaction);
+      round++;
+      document.getElementById('rfRound').textContent = `${round}/${totalRounds}`;
+      const avg = Math.round(times.reduce((a,b)=>a+b,0) / times.length);
+      document.getElementById('rfAvg').textContent = avg;
+      state = 'idle';
+      if (round >= totalRounds){
+        zone.className = 'reflex-zone wait';
+        zone.innerHTML = `Done! Average reaction: <b style="color:var(--cyan)">${avg}ms</b>`;
+        const startBtn = document.getElementById('rfStart');
+        startBtn.textContent = 'Play again';
+        startBtn.style.display = 'block';
+      } else {
+        zone.className = 'reflex-zone wait';
+        zone.textContent = `${reaction}ms — get ready for next round...`;
+        setTimeout(nextRound, 1000);
+      }
+    }
+  });
+
+  document.getElementById('rfStart').addEventListener('click', () => {
+    round = 0; times = [];
+    document.getElementById('rfRound').textContent = `0/${totalRounds}`;
+    document.getElementById('rfAvg').textContent = '—';
+    document.getElementById('rfStart').style.display = 'none';
+    nextRound();
+  });
+}
+
+/* ===================== 4. MATH MATCH ===================== */
+function initMatch(){
+  openModal(`
+    <h3 class="modal-title">Math Match</h3>
+    <p class="modal-sub">Flip two cards at a time. Match each equation to its answer.</p>
+    <div class="game-stats-row">
+      <div class="game-stat"><div class="val" id="mmMoves">0</div><div class="lbl">Moves</div></div>
+      <div class="game-stat"><div class="val" id="mmPairs">0/8</div><div class="lbl">Pairs found</div></div>
+    </div>
+    <div class="mem-grid" id="mmGrid"></div>
+    <div class="game-msg info" id="mmMsg">Find every matching pair.</div>
+  `);
+
+  const finalPairs = [
+    ['4+5','9'], ['3×6','18'], ['9+3','12'], ['16÷2','8'],
+    ['11−4','7'], ['6²','36'], ['7+8','15'], ['5×5','25']
+  ];
+
+  let cards = [];
+  finalPairs.forEach((p, i) => {
+    cards.push({ id:i, text:p[0], pairId:i });
+    cards.push({ id:i+100, text:p[1], pairId:i });
+  });
+  cards = shuffle(cards);
+
+  let flipped = [];
+  let matchedCount = 0;
+  let moves = 0;
+  let lock = false;
+
+  const grid = document.getElementById('mmGrid');
+  cards.forEach(card => {
+    const cell = document.createElement('div');
+    cell.className = 'mem-cell';
+    cell.textContent = '?';
+    cell.dataset.id = card.id;
+    cell.dataset.pair = card.pairId;
+    cell.dataset.text = card.text;
+    grid.appendChild(cell);
+  });
+
+  grid.addEventListener('click', (e) => {
+    const cell = e.target.closest('.mem-cell');
+    if (!cell || lock) return;
+    if (cell.classList.contains('flipped') || cell.classList.contains('matched')) return;
+
+    cell.classList.add('flipped');
+    cell.textContent = cell.dataset.text;
+    flipped.push(cell);
+
+    if (flipped.length === 2){
+      lock = true;
+      moves++;
+      document.getElementById('mmMoves').textContent = moves;
+      const [a, b] = flipped;
+      if (a.dataset.pair === b.dataset.pair){
+        setTimeout(() => {
+          a.classList.add('matched'); b.classList.add('matched');
+          a.classList.remove('flipped'); b.classList.remove('flipped');
+          matchedCount++;
+          document.getElementById('mmPairs').textContent = `${matchedCount}/8`;
+          flipped = [];
+          lock = false;
+          if (matchedCount === 8){
+            document.getElementById('mmMsg').textContent = `✓ Solved in ${moves} moves!`;
+            document.getElementById('mmMsg').className = 'game-msg right';
+          }
+        }, 400);
+      } else {
+        setTimeout(() => {
+          a.classList.remove('flipped'); b.classList.remove('flipped');
+          a.textContent = '?'; b.textContent = '?';
+          flipped = [];
+          lock = false;
+        }, 700);
+      }
+    }
+  });
+}
+
+/* ===================== 5. SEQUENCE SOLVER ===================== */
+function initSequence(){
+  let round = 0, score = 0, totalRounds = 10, currentAnswer = null;
+
+  openModal(`
+    <h3 class="modal-title">Sequence Solver</h3>
+    <p class="modal-sub">What comes next in the pattern?</p>
+    <div class="game-stats-row">
+      <div class="game-stat"><div class="val" id="seqRound">0/10</div><div class="lbl">Round</div></div>
+      <div class="game-stat"><div class="val" id="seqScore">0</div><div class="lbl">Correct</div></div>
+    </div>
+    <div class="game-display"><div class="prompt" id="seqPrompt">Ready?</div><div class="sub" id="seqSub"></div></div>
+    <div class="opt-grid" id="seqOpts"></div>
+    <div class="game-msg info" id="seqMsg">Press start to begin.</div>
+    <button class="btn-game" id="seqStart">Start</button>
+  `);
+
+  function makeSequence(){
+    const type = rand(0,3);
+    let seq = [], next, ruleText;
+    if (type === 0){ // arithmetic
+      const start = rand(1,10), step = rand(2,9);
+      seq = [start, start+step, start+2*step, start+3*step];
+      next = start + 4*step;
+      ruleText = 'arithmetic';
+    } else if (type === 1){ // geometric
+      const start = rand(1,4), ratio = rand(2,3);
+      seq = [start, start*ratio, start*ratio*ratio, start*ratio*ratio*ratio];
+      next = start*Math.pow(ratio,4);
+      ruleText = 'geometric';
+    } else if (type === 2){ // squares offset
+      const offset = rand(0,5);
+      seq = [1,4,9,16].map(v => v+offset);
+      next = 25+offset;
+      ruleText = 'squares';
+    } else { // fibonacci-like
+      let a = rand(1,5), b = rand(1,5);
+      seq = [a, b];
+      for (let i=0;i<2;i++){ const c = seq[seq.length-1]+seq[seq.length-2]; seq.push(c); }
+      next = seq[seq.length-1] + seq[seq.length-2];
+      ruleText = 'sum of previous two';
+    }
+    return { seq, next, ruleText };
+  }
+
+  function newRound(){
+    const { seq, next } = makeSequence();
+    currentAnswer = next;
+    document.getElementById('seqPrompt').textContent = seq.join(',  ') + ',  ?';
+    document.getElementById('seqSub').textContent = '';
+    const wrongOpts = new Set();
+    while (wrongOpts.size < 3){
+      const delta = rand(-8,8) || 1;
+      const candidate = next + delta;
+      if (candidate !== next) wrongOpts.add(candidate);
+    }
+    const opts = shuffle([next, ...wrongOpts]);
+    const optGrid = document.getElementById('seqOpts');
+    optGrid.innerHTML = '';
+    opts.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.textContent = opt;
+      btn.addEventListener('click', () => handleAnswer(btn, opt));
+      optGrid.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(btn, val){
+    document.querySelectorAll('#seqOpts .opt-btn').forEach(b => b.style.pointerEvents = 'none');
+    if (val === currentAnswer){
+      btn.classList.add('correct');
+      score++;
+      document.getElementById('seqScore').textContent = score;
+      document.getElementById('seqMsg').textContent = '✓ Correct!';
+      document.getElementById('seqMsg').className = 'game-msg right';
+    } else {
+      btn.classList.add('wrong');
+      document.querySelectorAll('#seqOpts .opt-btn').forEach(b => { if (parseInt(b.textContent) === currentAnswer) b.classList.add('correct'); });
+      document.getElementById('seqMsg').textContent = `✗ The answer was ${currentAnswer}`;
+      document.getElementById('seqMsg').className = 'game-msg wrong';
+    }
+    round++;
+    document.getElementById('seqRound').textContent = `${round}/${totalRounds}`;
+    if (round >= totalRounds){
+      setTimeout(() => {
+        document.getElementById('seqPrompt').textContent = 'Finished!';
+        document.getElementById('seqOpts').innerHTML = '';
+        document.getElementById('seqMsg').textContent = `Final score: ${score}/${totalRounds}`;
+        document.getElementById('seqMsg').className = 'game-msg right';
+        const startBtn = document.getElementById('seqStart');
+        startBtn.textContent = 'Play again';
+        startBtn.style.display = 'block';
+      }, 900);
+    } else {
+      setTimeout(newRound, 900);
+    }
+  }
+
+  document.getElementById('seqStart').addEventListener('click', () => {
+    round = 0; score = 0;
+    document.getElementById('seqRound').textContent = `0/${totalRounds}`;
+    document.getElementById('seqScore').textContent = 0;
+    document.getElementById('seqStart').style.display = 'none';
+    newRound();
+  });
+}
+</script>
+
+</body>
+</html>
