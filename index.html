@@ -366,9 +366,52 @@
   @media (max-width:600px){
     .class-grid{grid-template-columns:1fr;}
   }
+
+  /* ---------- Tap-to-enter overlay (lets the greeting start on the
+     very first tap, instead of silently waiting for one) ---------- */
+  #mlEnterOverlay{
+    position:fixed; inset:0; z-index:9999;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px;
+    background:radial-gradient(ellipse 80% 60% at 50% 40%, rgba(20,25,38,0.97), rgba(10,14,23,0.99));
+    backdrop-filter:blur(6px);
+    cursor:pointer;
+    text-align:center;
+    padding:24px;
+    transition:opacity 0.5s ease;
+  }
+  #mlEnterOverlay.ml-hide{ opacity:0; pointer-events:none; }
+  #mlEnterOverlay .ml-mark{
+    font-family:'JetBrains Mono', monospace; font-size:2.6rem; color:var(--cyan);
+    text-shadow:0 0 30px rgba(79,209,232,0.5);
+  }
+  #mlEnterOverlay .ml-title{
+    font-family:'Space Grotesk', sans-serif; font-size:1.4rem; color:var(--ink); font-weight:600;
+  }
+  #mlEnterOverlay .ml-hint{
+    font-family:'Inter', sans-serif; font-size:0.95rem; color:var(--ink-dim);
+    display:flex; align-items:center; gap:8px;
+  }
+  #mlEnterOverlay .ml-hint .ml-pulse{
+    width:9px; height:9px; border-radius:50%; background:var(--cyan);
+    animation:mlPulseDot 1.3s ease-in-out infinite;
+  }
+  @keyframes mlPulseDot{
+    0%, 100%{ transform:scale(1); opacity:1; }
+    50%{ transform:scale(1.6); opacity:0.4; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    #mlEnterOverlay .ml-hint .ml-pulse{ animation:none; }
+  }
 </style>
 </head>
 <body>
+
+<div id="mlEnterOverlay">
+  <div class="ml-mark">∫</div>
+  <div class="ml-title">MathLab</div>
+  <div class="ml-hint"><span class="ml-pulse"></span>Shuru karne ke liye kahin bhi tap karein</div>
+</div>
 
 <canvas id="bgCanvas"></canvas>
 <div class="bg-fade"></div>
@@ -638,13 +681,20 @@
       arabicUtter.onerror = () => { toggleBtn.classList.remove('is-playing'); label.textContent = 'Play welcome greeting'; };
       urduUtter.onerror = () => { toggleBtn.classList.remove('is-playing'); label.textContent = 'Play welcome greeting'; };
 
+      // IMPORTANT: hasPlayed/session ko sirf tab "played" mark karna hai
+      // jab browser ne wakai bolna shuru kar diya ho (onstart event).
+      // Sirf .speak() call karna kaafi nahi — agar browser ne gesture
+      // na hone ki waja se silently block kiya, to onstart kabhi nahi
+      // chalega, aur hum theek se yaad rakhenge k abhi tak nahi chala,
+      // taake agla real tap usay theek se chala sake.
+      arabicUtter.onstart = () => { hasPlayed = true; markPlayedThisSession(); };
+      urduUtter.onstart = () => { hasPlayed = true; markPlayedThisSession(); };
+
       if (arabicVoice) {
         synth.speak(arabicUtter);
       } else if (urduVoice) {
         synth.speak(urduUtter);
       }
-      hasPlayed = true;
-      markPlayedThisSession();
     }
 
     function tryAutoplay() {
@@ -652,7 +702,29 @@
       // pehle na chali ho. Manual button press hamesha kaam karega
       // (wo seperate click handler se aata hai, ye function nahi).
       if (hasPlayed || userMuted || alreadyPlayedThisSession()) return;
+      if (!availableVoices.length) availableVoices = synth.getVoices();
       speakSequence();
+    }
+
+    /* ---- Tap-to-enter overlay ----
+       Browsers (mobile khaaskar) audio/speech ko bina kisi user-tap
+       ke chalne nahi detay — ye fixed rule hai, JS se bypass nahi ho
+       sakta. Is liye ek overlay dikhate hain jis par pehla tap hi
+       greeting shuru kar deta hai, taake user ko confusion na ho
+       k "button kyun dabana pad raha hai". */
+    const enterOverlay = document.getElementById('mlEnterOverlay');
+    if (enterOverlay) {
+      if (alreadyPlayedThisSession() || userMuted) {
+        enterOverlay.remove();
+      } else {
+        const dismissOverlay = () => {
+          enterOverlay.classList.add('ml-hide');
+          setTimeout(() => enterOverlay.remove(), 550);
+          tryAutoplay();
+        };
+        enterOverlay.addEventListener('click', dismissOverlay, { once: true });
+        enterOverlay.addEventListener('touchstart', dismissOverlay, { once: true, passive: true });
+      }
     }
 
     function loadVoicesThenAutoplay() {
