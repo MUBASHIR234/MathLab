@@ -567,9 +567,28 @@
     let voicesReady = false;
     let availableVoices = [];
 
+    // Sirf isi browser tab/session ke liye yaad rakhta hai ke greeting
+    // pehle chal chuki hai. Tab/browser band karke dobara kholne par
+    // ye khud-ba-khud reset ho jata hai (sessionStorage ka tareeqa).
+    const SESSION_FLAG = 'mathlab_greeting_played';
+    function alreadyPlayedThisSession() {
+      try { return sessionStorage.getItem(SESSION_FLAG) === '1'; }
+      catch (e) { return false; }
+    }
+    function markPlayedThisSession() {
+      try { sessionStorage.setItem(SESSION_FLAG, '1'); } catch (e) {}
+    }
+
     if (!synth) {
       toggleBtn.style.display = 'none';
       return;
+    }
+
+    // Agar is session me greeting pehle hi chal chuki hai, to default
+    // label "Playing welcome greeting…" ki jagah "Play welcome greeting"
+    // dikhayen (kyunke ab khud-ba-khud nahi chalegi, sirf button se).
+    if (alreadyPlayedThisSession()) {
+      label.textContent = 'Play welcome greeting';
     }
 
     function pickVoice(langPrefix) {
@@ -625,10 +644,14 @@
         synth.speak(urduUtter);
       }
       hasPlayed = true;
+      markPlayedThisSession();
     }
 
     function tryAutoplay() {
-      if (hasPlayed || userMuted) return;
+      // Khud-ba-khud (autoplay) sirf tab chalega jab is session me
+      // pehle na chali ho. Manual button press hamesha kaam karega
+      // (wo seperate click handler se aata hai, ye function nahi).
+      if (hasPlayed || userMuted || alreadyPlayedThisSession()) return;
       speakSequence();
     }
 
